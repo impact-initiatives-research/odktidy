@@ -1,0 +1,236 @@
+---
+title: "2 minute introduction"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{2 minute introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(knitr)
+```
+
+```{r}
+library(odktidy)
+```
+
+## Example input
+
+This example data is included in the `odktidy` package
+
+```{r, eval = FALSE}
+head(example_data)
+```
+
+```{r, echo = FALSE}
+head(example_data) %>% (knitr::kable)
+```
+
+
+```{r, eval = FALSE}
+head(example_questions)
+```
+
+```{r, echo = FALSE}
+head(example_questions) %>% (knitr::kable)
+```
+
+
+```{r, eval = FALSE}
+head(example_choices)
+```
+
+```{r, echo = FALSE}
+head(example_choices) %>% (knitr::kable)
+```
+
+## Create odk data frame
+
+
+```{r, warning=FALSE}
+
+myodk <- as_odk(example_data,example_questions,example_choices)
+
+```
+
+
+At the base, an odk object is just a regular tibble (data.frame); you can use it like any other data frame:
+
+```{r,eval=FALSE}
+head(myodk)
+```
+
+```{r, echo = FALSE}
+head(myodk) %>% kable
+```
+
+
+```{r}
+typeof(myodk)
+class(myodk)
+
+nrow(myodk)
+ncol(myodk)
+myodk[200,20]
+
+```
+
+## Vector classes
+
+odk tibbles have special vector types for select_one and select_multiple questions (imported from the 'categorical' package; see `browseVignettes("categorical")` for details)
+
+
+For select multiple, the concatenated and logical columns for each choice are gone, instead there is one column of type select_multiple:
+
+```{r}
+head(myodk[,23])
+```
+
+
+```{r}
+#
+# myodk[,20:30]
+#
+# on_select_multiple<-function(x,f,...){
+#   out<-purrr::pmap(c(list(x),list(...)),f)
+#   if(all(unlist(purrr:::map(out,length))==1)){
+#     unlist(out)
+#   }
+# }
+# library(tidyr)
+# library(dplyr)
+# myodk %>% categorical::mutate_select_multiple(new = 'mother' %in% household_expenditure) %>% select(new)
+#
+# on_select_multiple(myodk$household_expenditure,function(x){'mother' %in% x})
+# unnest(as.list(myodk$household_expenditure[1:10]))
+#
+# spread_select_multiple<-function(x){
+#   unique_values<-purrr::map(x,levels) %>% unlist %>% unique
+#   spread<-purrr::map(x,function(x){
+#
+#       !is.na(match(unique_values, x))
+#
+#   }) %>% do.call(rbind,.)
+#   colnames(spread)<-unique_values
+#   spread
+# }
+# x<-as.logical(myodk$household_expenditure)
+# colnames(matrix(T,T))
+#
+#
+# gather_select_multiple<-function(x){
+#   assertthat::assert_that(is.matrix(x))
+#   assertthat::assert_that(is.logical(x))
+#   assertthat::assert_that(!any(duplicated(colnames(x))),
+#                           msg = 'to gather a logical matrix to a select multiple column, column names must be unique')
+#
+#   assertthat::assert_that(!any(is.null(colnames(x))),msg = 'x must have column names')
+#
+#   choices<-colnames(x)
+#   apply(x,1,function(x){
+#     names(which(x))
+#   })  %>%  as_select_multiple(choices = choices)
+#
+#   }
+#
+#
+# c(factor('hello'),'world')
+# class(myodk$household_expenditure[[3]])
+#
+# myodk$household_expenditure[[2]] %<>% c('father')
+# myodk$household_expenditure[1:3]
+# rm(select_multiple)
+# as_select_multiple(x) %>% head
+# traceback()
+#
+#
+#
+#
+# myodk$household_expenditure<- myodk$household_expenditure %>% spread_select_multiple
+#
+# myodk$household_expenditure %>% unnest
+#
+# devtools::install_github("mabafaba/composr")
+#
+# myodk %>% rowwise %>%
+#   mutate_select_multiple(he_ln = composr:::selected_exactly_lgl('mother', household_expenditure) ) %>%
+#   select(household_expenditure,he_ln) %>% .[20:30,]
+#
+#
+#
+# composr::sm_selected(myodk)
+#
+# myodk %>% mutate_select_multiple(length(household_expenditure)) %>% select(household_expenditure,he_ln) %>% .[20:30,]
+#
+#
+#
+#
+#
+# `%has all of%` <-composr:::selected_all_lgl
+# `%has exactly%`<-composr:::selected_exactly_lgl
+# `%has any of%`<-composr:::selected_any_lgl
+# `%has none of%` <-composr:::selected_none_lgl
+#
+#
+# myodk %>% mutate_select_multiple(hasf = household_expenditure %has exactly% c( 'mother'))  %>%
+#   select(household_expenditure,hasf) %>% .[20:30,]
+#
+# library(forcats)
+#
+# somedata$household_expenditure %>% levels
+#
+# levels.odk_select_multiple<-function(x){
+#   c(lapply(x,levels) %>% unlist,
+#     lapply(x,as.character) %>% unlist) %>% unique
+# }
+#
+# somedata<-myodk[48:53,23]
+#
+# somedata
+# fct_collapse.
+# levels(somedata$household_expenditure)
+#
+# somedata %>% mutate_select_multiple(
+#   any_male_selected = any(
+#     grep('father|male', household_expenditure)
+#     )
+#   )
+#
+#
+# as.logical(somedata$household_expenditure)
+#
+#
+#
+#
+#
+# label<-function(x){
+#   UseMethod("label")
+# }
+# class(somedata$household_expenditure)
+#
+# myodk$household_expenditure
+#
+#
+# myodk<-as_odk(df,questions,choices)
+# myodk[-(1:20),-(1:20)]
+#
+#
+# myodk$household_expenditure[100:110]
+# q<-attributes(myodk)$questionnaire
+# q$question_get_choices('household_expenditure')dev
+#
+#
+#
+# debug(q$question_is_sm_choice)
+#
+# q$question_is_sm_choice('household_expenditure.adult_female')
+#
+
+```
